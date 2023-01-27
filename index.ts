@@ -100,70 +100,72 @@ export const ScssModulesPlugin = (options: Partial<PluginOptions> = {}) => ({
         const results = new Map();
         const fullOptions = {...DefaultOptions, ...options};
 
-        build.onResolve(
-            { filter: /\.modules?\.scss$/, namespace: 'file' },
-            async (args) => {
-                const sourceFullPath = path.resolve(args.resolveDir, args.path);
-                if (results.has(sourceFullPath)) return results.get(sourceFullPath);
+        build.onResolve({filter: /\.scss$/, namespace: 'file'}, async args => {
+            const sourceFullPath = path.resolve(args.resolveDir, args.path)
+            if (results.has(sourceFullPath)) return results.get(sourceFullPath)
 
-                const result = await (async () => {
-                    const sourceExt = path.extname(sourceFullPath);
-                    const sourceBaseName = path.basename(sourceFullPath, sourceExt);
+            const result = await(async () => {
+                const sourceExt = path.extname(sourceFullPath)
+                const sourceBaseName = path.basename(sourceFullPath, sourceExt)
 
-                    if (bundle) {
-                        return {
-                            path: args.path,
-                            namespace: PLUGIN,
-                            pluginData: {
-                                sourceFullPath
-                            }
-                        };
+                if (bundle) {
+                    return {
+                        path: args.path,
+                        namespace: PLUGIN,
+                        pluginData: {
+                            sourceFullPath,
+                        },
                     }
+                }
 
-                    if (outdir) {
-                        const isOutdirAbsolute = path.isAbsolute(outdir);
-                        const absoluteOutdir = isOutdirAbsolute ? outdir : path.resolve(args.resolveDir, outdir);
-                        const isEntryAbsolute = path.isAbsolute(args.path);
-                        const entryRelDir = isEntryAbsolute ? path.dirname(path.relative(args.resolveDir, args.path)) : path.dirname(args.path);
+                if (outdir) {
+                    const isOutdirAbsolute = path.isAbsolute(outdir)
+                    const absoluteOutdir = isOutdirAbsolute ? outdir : path.resolve(args.resolveDir, outdir)
+                    const isEntryAbsolute = path.isAbsolute(args.path)
+                    const entryRelDir = isEntryAbsolute
+                        ? path.dirname(path.relative(args.resolveDir, args.path))
+                        : path.dirname(args.path)
 
-                        const targetSubpath = absoluteOutdir.indexOf(entryRelDir) === -1 ? path.join(entryRelDir, `${sourceBaseName}.css.js`) : `${sourceBaseName}.css.js`;
-                        const target = path.resolve(absoluteOutdir, targetSubpath);
+                    const targetSubpath =
+                        absoluteOutdir.indexOf(entryRelDir) === -1
+                            ? path.join(entryRelDir, `${sourceBaseName}.css.js`)
+                            : `${sourceBaseName}.css.js`
+                    const target = path.resolve(absoluteOutdir, targetSubpath)
 
-                        const jsContent = await buildScssModulesJS(sourceFullPath, fullOptions);
-                        await fs.mkdir(path.dirname(target), {recursive: true});
-                        await fs.writeFile(target, jsContent);
-                    }
+                    const jsContent = await buildScssModulesJS(sourceFullPath, fullOptions)
+                    await fs.mkdir(path.dirname(target), {recursive: true})
+                    await fs.writeFile(target, jsContent)
+                }
 
-                    return { path: sourceFullPath, namespace: 'file' };
-                })();
+                return {path: sourceFullPath, namespace: 'file'}
+            })()
 
-                if (fullOptions.cache) results.set(sourceFullPath, result);
-                return result;
-            }
-        );
+            if (fullOptions.cache) results.set(sourceFullPath, result)
+            return result
+        })
 
-        build.onLoad({ filter: /\.modules?\.scss$/, namespace: PLUGIN }, async ({ pluginData: { sourceFullPath }}) => {
-            const contents = await buildScssModulesJS(sourceFullPath, fullOptions);
+        build.onLoad({filter: /\.scss$/, namespace: PLUGIN}, async ({pluginData: {sourceFullPath}}) => {
+            const contents = await buildScssModulesJS(sourceFullPath, fullOptions)
             return {
                 contents,
                 loader: 'js',
                 watchFiles: [sourceFullPath],
-            };
-        });
+            }
+        })
     }
 } as esbuild.Plugin);
 
 export default ScssModulesPlugin;
 
 //@ts-expect-error
-declare module '*.modules.scss' {
+declare module '*.scss' {
     interface IClassNames {
         [className: string]: string
     }
-    const classes: IClassNames;
-    const digest: string;
-    const css: string;
+    const classes: IClassNames
+    const digest: string
+    const css: string
 
-    export default classes;
-    export {classes, digest, css};
+    export default classes
+    export {classes, digest, css}
 }

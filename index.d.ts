@@ -15,7 +15,7 @@ export declare type PluginOptions = {
 };
 export declare const ScssModulesPlugin: (options?: Partial<PluginOptions>) => esbuild.Plugin;
 export default ScssModulesPlugin;
-declare module '*.modules.scss' {
+declare module '*.scss' {
     interface IClassNames {
         [className: string]: string;
     }

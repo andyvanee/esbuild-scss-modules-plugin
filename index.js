@@ -97,7 +97,7 @@ const ScssModulesPlugin = (options = {}) => ({
         const { outdir, bundle } = build.initialOptions;
         const results = new Map();
         const fullOptions = { ...DefaultOptions, ...options };
-        build.onResolve({ filter: /\.modules?\.scss$/, namespace: 'file' }, async (args) => {
+        build.onResolve({ filter: /\.scss$/, namespace: 'file' }, async (args) => {
             const sourceFullPath = path_1.default.resolve(args.resolveDir, args.path);
             if (results.has(sourceFullPath))
                 return results.get(sourceFullPath);
@@ -109,16 +109,20 @@ const ScssModulesPlugin = (options = {}) => ({
                         path: args.path,
                         namespace: PLUGIN,
                         pluginData: {
-                            sourceFullPath
-                        }
+                            sourceFullPath,
+                        },
                     };
                 }
                 if (outdir) {
                     const isOutdirAbsolute = path_1.default.isAbsolute(outdir);
                     const absoluteOutdir = isOutdirAbsolute ? outdir : path_1.default.resolve(args.resolveDir, outdir);
                     const isEntryAbsolute = path_1.default.isAbsolute(args.path);
-                    const entryRelDir = isEntryAbsolute ? path_1.default.dirname(path_1.default.relative(args.resolveDir, args.path)) : path_1.default.dirname(args.path);
-                    const targetSubpath = absoluteOutdir.indexOf(entryRelDir) === -1 ? path_1.default.join(entryRelDir, `${sourceBaseName}.css.js`) : `${sourceBaseName}.css.js`;
+                    const entryRelDir = isEntryAbsolute
+                        ? path_1.default.dirname(path_1.default.relative(args.resolveDir, args.path))
+                        : path_1.default.dirname(args.path);
+                    const targetSubpath = absoluteOutdir.indexOf(entryRelDir) === -1
+                        ? path_1.default.join(entryRelDir, `${sourceBaseName}.css.js`)
+                        : `${sourceBaseName}.css.js`;
                     const target = path_1.default.resolve(absoluteOutdir, targetSubpath);
                     const jsContent = await buildScssModulesJS(sourceFullPath, fullOptions);
                     await promises_1.default.mkdir(path_1.default.dirname(target), { recursive: true });
@@ -130,7 +134,7 @@ const ScssModulesPlugin = (options = {}) => ({
                 results.set(sourceFullPath, result);
             return result;
         });
-        build.onLoad({ filter: /\.modules?\.scss$/, namespace: PLUGIN }, async ({ pluginData: { sourceFullPath } }) => {
+        build.onLoad({ filter: /\.scss$/, namespace: PLUGIN }, async ({ pluginData: { sourceFullPath } }) => {
             const contents = await buildScssModulesJS(sourceFullPath, fullOptions);
             return {
                 contents,

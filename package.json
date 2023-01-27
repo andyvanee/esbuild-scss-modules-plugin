@@ -1,5 +1,5 @@
 {
-  "name": "esbuild-scss-modules-plugin",
+  "name": "@andyvanee/esbuild-scss-modules-plugin",
   "version": "1.0.0",
   "main": "index.js",
   "types": "index.d.ts",
